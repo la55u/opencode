@@ -1,0 +1,280 @@
+# Slack Package Architecture
+
+This document provides a detailed technical explanation of how the `@opencode-ai/slack` package works, including its use of Slack's Web API, Socket Mode implementation, and session model configuration.
+
+## Overview
+
+The Slack package (`@opencode-ai/slack`) is a bot integration that connects Slack workspaces to OpenCode's AI coding assistant. It creates threaded conversations where users can interact with OpenCode directly from Slack channels.
+
+## Key Components
+
+### 1. Slack Bolt Framework
+
+The package uses **Slack Bolt for JavaScript** (`@slack/bolt`), which is Slack's official framework for building Slack apps. Bolt provides:
+
+- Event handling and routing
+- Built-in middleware support
+- Automatic token management
+- Easy access to Slack's Web API
+
+### 2. Web Client Usage
+
+#### What is the Web Client?
+
+The package uses Slack's **Web API Client** through the Bolt framework. In the code, you'll see `app.client.chat.postMessage()` calls - this is the Web Client in action.
+
+**Two ways to access the Web Client:**
+
+1. **`app.client`** - The top-level, unscoped Web Client attached to the Bolt app instance
+   - Used for making API calls outside of event handlers
+   - Requires explicitly passing the bot token in each call
+   - Example in the code (line 44-50):
+   ```typescript
+   await app.client.chat.postMessage({
+     channel,
+     thread_ts: thread,
+     text: toolMessage,
+   })
+   ```
+
+2. **`client` in listeners** - Context-aware Web Client provided in event handlers
+   - Automatically scoped with the correct token for the workspace/event
+   - Not currently used in this package, but available in event handlers like `app.message()`
+
+#### How the Web Client Works
+
+The Web Client communicates with Slack's REST API to:
+- Post messages to channels (`chat.postMessage`)
+- Send threaded replies
+- Interact with Slack's platform features
+
+**In this package:**
+- Line 44-50: Posts tool execution updates to threads
+- Line 100: Shares OpenCode session URLs in threads
+- Lines 84-87, 114-118: Sends error messages
+- Line 135: Sends AI responses back to users
+
+All these operations use HTTP requests to Slack's Web API, authenticated with the bot token (`SLACK_BOT_TOKEN`).
+
+### 3. Socket Mode
+
+#### What is Socket Mode?
+
+**Socket Mode** is a WebSocket-based connection method that allows the Slack app to receive events without needing a public HTTP endpoint. This is configured on line 7:
+
+```typescript
+socketMode: true,
+appToken: process.env.SLACK_APP_TOKEN,
+```
+
+#### How Socket Mode Works
+
+Instead of Slack sending events to your app via HTTP POST requests (which requires a publicly accessible URL), Socket Mode:
+
+1. **Establishes a WebSocket connection** from your app to Slack
+2. **Receives all events** over this persistent connection
+3. **Does NOT require** your app to be publicly accessible on the internet
+
+**Benefits:**
+- ✅ **No public endpoint needed** - Perfect for development and internal deployments
+- ✅ **Works behind firewalls** - Great for enterprise environments with strict network policies
+- ✅ **Simpler local development** - No need for tools like ngrok
+- ✅ **More secure** - Reduced attack surface since the app isn't publicly exposed
+
+**Requirements:**
+- An app-level token (`SLACK_APP_TOKEN` with `connections:write` scope)
+- Socket Mode enabled in your Slack app configuration
+- A persistent connection to Slack's WebSocket endpoint
+
+#### Socket Mode vs HTTP Mode
+
+| Aspect | Socket Mode (This Package) | HTTP Mode |
+|--------|---------------------------|-----------|
+| Connection | WebSocket (bidirectional) | HTTP POST (one-way) |
+| Public URL | Not required | Required |
+| Network | Works behind firewalls | Needs public endpoint |
+| Token | Requires app-level token | Uses signing secret |
+| Best For | Development, on-prem | Production deployments |
+
+### 4. Session Management
+
+#### Session Creation and Mapping
+
+The package maintains a session map (line 22) that associates Slack threads with OpenCode sessions:
+
+```typescript
+const sessions = new Map<string, { 
+  client: any; 
+  server: any; 
+  sessionId: string; 
+  channel: string; 
+  thread: string 
+}>()
+```
+
+**Key:** `${channel}-${thread}` (line 70)  
+**Value:** OpenCode session details
+
+#### Session Creation Process
+
+When a new message arrives in a thread (lines 74-102):
+
+1. **Check for existing session** - Look up by channel-thread key
+2. **Create new session if needed** - Call `client.session.create()`
+3. **Set session title** - Uses format: `"Slack thread {thread_ts}"`
+4. **Store session mapping** - Save in the sessions Map
+5. **Share session URL** - Post the OpenCode session link to the thread
+
+#### Model Used for Session Tagging
+
+The session title (`"Slack thread {thread_ts}"`) is set when creating the session (line 79):
+
+```typescript
+const createResult = await client.session.create({
+  body: { title: `Slack thread ${thread}` },
+})
+```
+
+**What model generates this title?**
+
+The title is **NOT generated by an AI model** - it's a static string constructed by the code. The `thread` variable is the Slack thread timestamp (e.g., "1234567890.123456").
+
+However, OpenCode itself has a concept of a "small model" for lightweight tasks like title generation. This is configured in the OpenCode config file:
+
+```json
+{
+  "small_model": "anthropic/claude-haiku-4-5"
+}
+```
+
+**For this Slack integration:**
+- The initial title is set explicitly by the code
+- OpenCode may internally use the `small_model` for other session-related tasks like:
+  - Generating summaries of code changes
+  - Creating descriptions for commits
+  - Tagging and organizing session content
+
+The small model is typically a faster, cheaper model (like Claude Haiku) used for tasks that don't require the full reasoning power of the main model.
+
+## Data Flow
+
+### Message Handling Flow
+
+1. **User sends message in Slack** → Message event received via Socket Mode
+2. **Event handler processes message** (line 58)
+   - Filters out bot messages and messages without text
+   - Extracts channel and thread information
+3. **Session lookup/creation** (lines 72-102)
+   - Find or create OpenCode session for this thread
+4. **Send to OpenCode** (lines 105-108)
+   - Call `client.session.prompt()` with the user's message
+5. **Receive response** (lines 122-130)
+   - Extract text from OpenCode's response
+   - Build response message
+6. **Send to Slack** (line 135)
+   - Post reply in the same thread
+
+### Tool Execution Flow
+
+The package also subscribes to OpenCode events to provide real-time tool updates (lines 23-39):
+
+1. **Subscribe to events** - `opencode.client.event.subscribe()`
+2. **Process tool updates** - Filter for `message.part.updated` events
+3. **Match to session** - Find which Slack thread corresponds to the session
+4. **Post tool status** - Send formatted tool updates to the Slack thread
+
+Example tool message: `*grep* - Search for pattern in files`
+
+## Environment Configuration
+
+The package requires three environment variables:
+
+```bash
+SLACK_BOT_TOKEN=xoxb-...      # Bot User OAuth Token
+SLACK_SIGNING_SECRET=...       # For verifying Slack requests
+SLACK_APP_TOKEN=xapp-...       # App-level token for Socket Mode
+```
+
+These are configured in Slack's app dashboard:
+- **Bot Token**: OAuth & Permissions page
+- **Signing Secret**: Basic Information page
+- **App Token**: Basic Information page (requires `connections:write` scope)
+
+## Required Slack Permissions
+
+The bot needs these OAuth scopes:
+- `chat:write` - Send messages
+- `app_mentions:read` - Receive mentions
+- `channels:history` - Read channel messages
+- `groups:history` - Read private channel messages
+
+## Technical Stack
+
+- **Runtime**: Bun (JavaScript runtime)
+- **Framework**: Slack Bolt 3.17.1
+- **SDK**: OpenCode AI SDK (workspace package)
+- **Language**: TypeScript
+
+## Running the Bot
+
+```bash
+# Set environment variables in .env
+bun dev
+```
+
+The bot will:
+1. Initialize OpenCode server on a random port
+2. Connect to Slack via Socket Mode
+3. Listen for messages in channels where it's installed
+4. Create/manage OpenCode sessions per thread
+5. Stream responses and tool updates back to Slack
+
+## Architecture Diagram
+
+```
+┌─────────────┐
+│   Slack     │
+│  Workspace  │
+└──────┬──────┘
+       │ WebSocket (Socket Mode)
+       │ Events (messages, mentions, etc.)
+       ▼
+┌──────────────────────┐
+│   Slack Bot          │
+│  (@slack/bolt)       │
+│                      │
+│  • Event Router      │
+│  • Web Client        │
+│  • Session Map       │
+└──────┬───────────────┘
+       │ HTTP/SDK
+       │ session.create()
+       │ session.prompt()
+       ▼
+┌──────────────────────┐
+│   OpenCode Server    │
+│  (@opencode-ai/sdk)  │
+│                      │
+│  • AI Processing     │
+│  • Tool Execution    │
+│  • Code Generation   │
+└──────────────────────┘
+```
+
+## Key Design Decisions
+
+1. **Thread-based sessions**: Each Slack thread gets its own OpenCode session, allowing parallel conversations
+2. **Socket Mode over HTTP**: Simplifies deployment and improves security
+3. **Real-time tool updates**: Event subscription provides live feedback on tool execution
+4. **Explicit session titles**: Static titles for easy identification in OpenCode UI
+5. **Minimal error handling**: Failed messages are caught but don't crash the bot
+
+## Future Enhancements
+
+Potential improvements could include:
+- User-specific sessions (per-user instead of per-thread)
+- Rich message formatting (code blocks, attachments)
+- Interactive components (buttons, modals)
+- Session persistence across bot restarts
+- Better error messages with retry logic
+- Support for slash commands beyond `/test`

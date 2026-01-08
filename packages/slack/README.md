@@ -2,6 +2,15 @@
 
 Slack bot integration for opencode that creates threaded conversations.
 
+## How It Works
+
+This package uses **Slack Bolt** with **Socket Mode** to connect Slack to OpenCode:
+- **Socket Mode**: Uses WebSocket connections instead of HTTP webhooks, so no public URL is needed
+- **Web Client**: Communicates with Slack's API to send messages and updates  
+- **Session Model**: Each Slack thread creates a separate OpenCode session, titled `"Slack thread {thread_ts}"`
+
+For detailed technical documentation, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
 ## Setup
 
 1. Create a Slack app at https://api.slack.com/apps
