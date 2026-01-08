@@ -222,7 +222,11 @@ Actions:
               id: participantID,
               username: `user_${participantID.slice(0, 6)}`, // In real implementation, get from auth
               joinedAt: Date.now(),
-              permissions: config.defaultPermissions,
+              permissions: {
+                canPrompt: config.defaultPermissions.canPrompt ?? true,
+                canEdit: config.defaultPermissions.canEdit ?? false,
+                canViewOnly: config.defaultPermissions.canViewOnly ?? false,
+              },
               connected: true,
             }
 
