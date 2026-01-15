@@ -1024,9 +1024,6 @@ export namespace Config {
         .optional(),
       experimental: z
         .object({
-          // Master toggle
-          enable_all: z.boolean().optional().describe("Enable all experimental features"),
-
           // Hooks (complex object, no env var equivalent)
           hook: z
             .object({

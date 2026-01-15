@@ -1735,10 +1735,6 @@ export type Config = {
     prune?: boolean
   }
   experimental?: {
-    /**
-     * Enable all experimental features
-     */
-    enable_all?: boolean
     hook?: {
       file_edited?: {
         [key: string]: Array<{
