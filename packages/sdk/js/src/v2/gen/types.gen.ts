@@ -1735,6 +1735,10 @@ export type Config = {
     prune?: boolean
   }
   experimental?: {
+    /**
+     * Enable all experimental features
+     */
+    enable_all?: boolean
     hook?: {
       file_edited?: {
         [key: string]: Array<{
@@ -1754,28 +1758,75 @@ export type Config = {
     /**
      * Number of retries for chat completions on failure
      */
-    chatMaxRetries?: number
-    disable_paste_summary?: boolean
+    chat_max_retries?: number
+    /**
+     * Max output tokens for LLM responses
+     */
+    output_token_max?: number
+    /**
+     * Enable OpenTelemetry spans for AI SDK calls
+     */
+    open_telemetry?: boolean
+    /**
+     * Tools that should only be available to primary agents
+     */
+    primary_tools?: Array<string>
     /**
      * Enable the batch tool
      */
     batch_tool?: boolean
     /**
-     * Enable OpenTelemetry spans for AI SDK calls (using the 'experimental_telemetry' flag)
-     */
-    openTelemetry?: boolean
-    /**
-     * Tools that should only be available to primary agents.
-     */
-    primary_tools?: Array<string>
-    /**
      * Continue the agent loop when a tool call is denied
      */
     continue_loop_on_deny?: boolean
     /**
-     * Timeout in milliseconds for model context protocol (MCP) requests
+     * Max output length for bash commands
+     */
+    bash_max_output_length?: number
+    /**
+     * Default timeout for bash commands in ms
+     */
+    bash_default_timeout_ms?: number
+    /**
+     * Timeout in milliseconds for MCP requests
      */
     mcp_timeout?: number
+    /**
+     * Enable file watcher for entire directory
+     */
+    filewatcher?: boolean
+    /**
+     * Disable file watcher
+     */
+    disable_filewatcher?: boolean
+    /**
+     * Disable copy on select in TUI
+     */
+    disable_copy_on_select?: boolean
+    /**
+     * Disable paste summary
+     */
+    disable_paste_summary?: boolean
+    /**
+     * Enable icon discovery
+     */
+    icon_discovery?: boolean
+    /**
+     * Enable oxfmt formatter
+     */
+    oxfmt?: boolean
+    /**
+     * Enable ty LSP server for Python
+     */
+    lsp_ty?: boolean
+    /**
+     * Enable experimental LSP tool
+     */
+    lsp_tool?: boolean
+    /**
+     * Enable experimental plan mode
+     */
+    plan_mode?: boolean
   }
 }
 

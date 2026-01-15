@@ -225,7 +225,7 @@ export namespace LLM {
           extractReasoningMiddleware({ tagName: "think", startWithReasoning: false }),
         ],
       }),
-      experimental_telemetry: { isEnabled: cfg.experimental?.openTelemetry },
+      experimental_telemetry: { isEnabled: cfg.experimental?.open_telemetry },
     })
   }
 

@@ -580,14 +580,25 @@ OpenCode can be configured using environment variables.
 
 These environment variables enable experimental features that may change or be removed.
 
-| Variable                                        | Type    | Description                             |
-| ----------------------------------------------- | ------- | --------------------------------------- |
-| `OPENCODE_EXPERIMENTAL`                         | boolean | Enable all experimental features        |
-| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | Enable icon discovery                   |
-| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | Disable copy on select in TUI           |
-| `OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH`  | number  | Max output length for bash commands     |
-| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | Default timeout for bash commands in ms |
-| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | Max output tokens for LLM responses     |
-| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | boolean | Enable file watcher for entire dir      |
-| `OPENCODE_EXPERIMENTAL_OXFMT`                   | boolean | Enable oxfmt formatter                  |
-| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | boolean | Enable experimental LSP tool            |
+| Variable                                        | Type    | Description                                  |
+| ----------------------------------------------- | ------- | -------------------------------------------- |
+| `OPENCODE_EXPERIMENTAL`                         | boolean | Enable all experimental features             |
+| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | Enable icon discovery                        |
+| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | Disable copy on select in TUI                |
+| `OPENCODE_EXPERIMENTAL_BASH_MAX_OUTPUT_LENGTH`  | number  | Max output length for bash commands          |
+| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | Default timeout for bash commands in ms      |
+| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | Max output tokens for LLM responses          |
+| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | boolean | Enable file watcher for entire dir           |
+| `OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | Disable file watcher                         |
+| `OPENCODE_EXPERIMENTAL_OXFMT`                   | boolean | Enable oxfmt formatter                       |
+| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | boolean | Enable experimental LSP tool                 |
+| `OPENCODE_EXPERIMENTAL_LSP_TY`                  | boolean | Enable ty LSP server for Python              |
+| `OPENCODE_EXPERIMENTAL_PLAN_MODE`               | boolean | Enable experimental plan mode                |
+| `OPENCODE_EXPERIMENTAL_CHAT_MAX_RETRIES`        | number  | Number of retries for chat completions       |
+| `OPENCODE_EXPERIMENTAL_DISABLE_PASTE_SUMMARY`   | boolean | Disable paste summary                        |
+| `OPENCODE_EXPERIMENTAL_BATCH_TOOL`              | boolean | Enable the batch tool                        |
+| `OPENCODE_EXPERIMENTAL_OPEN_TELEMETRY`          | boolean | Enable OpenTelemetry spans for AI SDK        |
+| `OPENCODE_EXPERIMENTAL_CONTINUE_LOOP_ON_DENY`   | boolean | Continue agent loop when tool call is denied |
+| `OPENCODE_EXPERIMENTAL_MCP_TIMEOUT`             | number  | Timeout in ms for MCP requests               |
+
+All experimental environment variables can also be configured via the `experimental` key in your config file. See [experimental config options](/docs/config/#experimental).

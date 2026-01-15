@@ -268,7 +268,7 @@ export namespace Agent {
     const existing = await list()
     const result = await generateObject({
       experimental_telemetry: {
-        isEnabled: cfg.experimental?.openTelemetry,
+        isEnabled: cfg.experimental?.open_telemetry,
         metadata: {
           userId: cfg.username ?? "unknown",
         },

@@ -1024,6 +1024,10 @@ export namespace Config {
         .optional(),
       experimental: z
         .object({
+          // Master toggle
+          enable_all: z.boolean().optional().describe("Enable all experimental features"),
+
+          // Hooks (complex object, no env var equivalent)
           hook: z
             .object({
               file_edited: z
@@ -1046,24 +1050,55 @@ export namespace Config {
                 .optional(),
             })
             .optional(),
-          chatMaxRetries: z.number().optional().describe("Number of retries for chat completions on failure"),
-          disable_paste_summary: z.boolean().optional(),
-          batch_tool: z.boolean().optional().describe("Enable the batch tool"),
-          openTelemetry: z
-            .boolean()
-            .optional()
-            .describe("Enable OpenTelemetry spans for AI SDK calls (using the 'experimental_telemetry' flag)"),
+
+          // Chat/LLM settings
+          chat_max_retries: z.number().optional().describe("Number of retries for chat completions on failure"),
+          output_token_max: z.number().int().positive().optional().describe("Max output tokens for LLM responses"),
+          open_telemetry: z.boolean().optional().describe("Enable OpenTelemetry spans for AI SDK calls"),
+
+          // Tool settings
           primary_tools: z
             .array(z.string())
             .optional()
-            .describe("Tools that should only be available to primary agents."),
+            .describe("Tools that should only be available to primary agents"),
+          batch_tool: z.boolean().optional().describe("Enable the batch tool"),
           continue_loop_on_deny: z.boolean().optional().describe("Continue the agent loop when a tool call is denied"),
-          mcp_timeout: z
+
+          // Bash settings
+          bash_max_output_length: z
             .number()
             .int()
             .positive()
             .optional()
-            .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
+            .describe("Max output length for bash commands"),
+          bash_default_timeout_ms: z
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe("Default timeout for bash commands in ms"),
+
+          // MCP settings
+          mcp_timeout: z.number().int().positive().optional().describe("Timeout in milliseconds for MCP requests"),
+
+          // File watcher settings
+          filewatcher: z.boolean().optional().describe("Enable file watcher for entire directory"),
+          disable_filewatcher: z.boolean().optional().describe("Disable file watcher"),
+
+          // TUI settings
+          disable_copy_on_select: z.boolean().optional().describe("Disable copy on select in TUI"),
+          disable_paste_summary: z.boolean().optional().describe("Disable paste summary"),
+          icon_discovery: z.boolean().optional().describe("Enable icon discovery"),
+
+          // Formatter settings
+          oxfmt: z.boolean().optional().describe("Enable oxfmt formatter"),
+
+          // LSP settings
+          lsp_ty: z.boolean().optional().describe("Enable ty LSP server for Python"),
+          lsp_tool: z.boolean().optional().describe("Enable experimental LSP tool"),
+
+          // Mode settings
+          plan_mode: z.boolean().optional().describe("Enable experimental plan mode"),
         })
         .optional(),
     })
