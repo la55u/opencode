@@ -48,8 +48,8 @@ export function ContentMarkdown(props: Props) {
   return (
     <div
       class={style.root}
-      data-highlight={props.highlight === true ? true : undefined}
-      data-expanded={expanded() || props.expand === true ? true : undefined}
+      data-highlight={props.highlight || undefined}
+      data-expanded={expanded() || props.expand || undefined}
     >
       <div data-slot="markdown" ref={overflow.ref} innerHTML={html()} />
 
