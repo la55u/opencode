@@ -86,6 +86,12 @@ This is used internally and can be invoked using `@general` in messages.
 
 Learn more about [agents](https://opencode.ai/docs/agents).
 
+### Plugins
+
+OpenCode supports plugins to extend functionality. Check out the [Group Session Plugin](packages/group-session-plugin) for collaborative coding sessions where multiple users can work together in real-time.
+
+Learn more about [plugins](https://opencode.ai/docs/plugins).
+
 ### Documentation
 
 For more info on how to configure OpenCode [**head over to our docs**](https://opencode.ai/docs).
